@@ -62,9 +62,9 @@ export default function Navbar({ searchQuery, setSearchQuery, onShuffle }: Navba
                {/* Pass the actual user state here */}
                <ProfileTab user={user} />
             </div>
-            <Link href="/" className="text-xl md:text-2xl font-black italic tracking-tighter text-foreground uppercase">
+            <a href="/" className="text-xl md:text-2xl z-20 font-black italic tracking-tighter text-foreground uppercase">
               Cin<span className="text-[#cae962]">Anime</span>
-            </Link>
+            </a> 
           </div>
 
           <nav className="hidden lg:flex items-center gap-8 ml-8 mr-auto">
@@ -93,6 +93,9 @@ export default function Navbar({ searchQuery, setSearchQuery, onShuffle }: Navba
                   onChange={(e) => setSearchQuery(e.target.value.toUpperCase())}
                   className="w-full bg-secondary/30 border border-white/5 rounded-full py-3 pl-12 pr-10 text-[10px] font-black uppercase tracking-[0.2em] outline-none"
                 />
+                <a href="/animes" className="text-xl absolute -ml-350 mt-1 md:text-2xl z-40 font-black italic tracking-tighter text-foreground uppercase">
+                 Cin<span className="text-[#cae962]">Anime</span>
+                </a> 
               </div>
             )}
           </div>
@@ -111,7 +114,7 @@ export default function Navbar({ searchQuery, setSearchQuery, onShuffle }: Navba
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="lg:hidden p-2 text-zinc-400 hover:text-[#cae962] z-[110]"
             >
-              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              {isMenuOpen ? <X className="-ml-25" size={24} /> : <Menu size={24} />}
             </button>
           </div>
         </div>
