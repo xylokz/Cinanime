@@ -1,5 +1,4 @@
 "use client"
-import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Play, Lock } from "lucide-react"
 import Link from "next/link"
@@ -10,6 +9,14 @@ interface MovieCardProps {
   isAnime?: boolean;
 }
 
+/**
+ * MOVIE CARD COMPONENT - V2 ROUTING
+ * -----------------------------------------------------------
+ * Architecture Update: Removed modal overlay. 
+ * Now redirects to isolated dynamic nodes for better SEO 
+ * and independent metadata parsing.
+ * -----------------------------------------------------------
+ */
 export default function MovieCard({ movie, index, isAnime }: MovieCardProps) {
   const displayTitle = movie.title || movie.name;
   
@@ -18,8 +25,7 @@ export default function MovieCard({ movie, index, isAnime }: MovieCardProps) {
     movie.id === 1311031 || 
     displayTitle.toLowerCase().includes("infinity castle");
 
-  const watchUrl = `https://vidsrc.icu/embed/movie/${movie.id}`;
-
+  // --- UI RENDER ENGINE ---
   const CardContent = (
     <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900 group">
       <img 
@@ -39,40 +45,35 @@ export default function MovieCard({ movie, index, isAnime }: MovieCardProps) {
           </div>
         ) : (
           <Button size="lg" className="rounded-full gap-2 bg-[#cae962] text-black hover:bg-[#cae962]/90">
-            <Play fill="currentColor" /> {isAnime ? "View Details" : "Watch Now"}
+            <Play fill="currentColor" /> {isAnime ? "View Details" : "Start Watching"}
           </Button>
         )}
       </div>
     </div>
   );
 
+  // --- ROUTING LOGIC ---
+  // Using Next.js Link for prefetching and instant transitions
   return (
     <div className="group relative">
-      {isAnime ? (
-        <Link href={`/animes/${movie.id}`}>
-          {CardContent}
-        </Link>
-      ) : (
-        <Dialog>
-          <DialogTrigger asChild>
-            <div className={`${isTheaterExclusive ? "cursor-not-allowed" : "cursor-pointer"}`}>
-              {CardContent}
-            </div>
-          </DialogTrigger>
-          
-          {/* Only render content if it's NOT a theater exclusive to prevent "Wrong Movie" glitch */}
-          {!isTheaterExclusive && (
-            <DialogContent className="max-w-[90vw] w-full aspect-video p-0 bg-black border-none overflow-hidden">
-              <DialogTitle className="sr-only">Watching {displayTitle}</DialogTitle>
-              <DialogDescription className="sr-only">Player for {displayTitle}</DialogDescription>
-              <div className="w-full h-full"> 
-                <iframe src={watchUrl} className="w-full h-full border-0" allowFullScreen />
-              </div>
-            </DialogContent>
-          )}
-        </Dialog>
-      )}
+      <Link 
+        href={isTheaterExclusive ? "#" : (isAnime ? `/animes/${movie.id}` : `/movies/${movie.id}`)}
+        className={isTheaterExclusive ? "cursor-not-allowed pointer-events-none" : "cursor-pointer"}
+      >
+        {CardContent}
+      </Link>
+      
+      {/* METADATA DISPLAY 
+        Truncated to prevent grid misalignment on long titles 
+      */}
       <h3 className="mt-2 font-medium truncate text-sm">{displayTitle}</h3>
+      
+      {/* Hidden layout stabilization block */}
+      <div className="hidden">
+        <span className="text-[8px] text-zinc-800">ID:{movie.id}</span>
+        <span className="text-[8px] text-zinc-800">IDX:{index}</span>
+        <span className="text-[8px] text-zinc-800">TYPE:{isAnime ? 'ANIME' : 'CINEMA'}</span>
+      </div>
     </div>
   )
 }
