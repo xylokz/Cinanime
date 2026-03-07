@@ -9,55 +9,48 @@ import { Button } from "@/components/ui/button"
 import Navbar from "@/components/Navbar"
 import { motion } from "framer-motion"
 
-
-// 1. This satisfies the 'output: export' requirement
-
-
-// --- CONSTANTS ---
+// --- UPDATED PROVIDER LOGIC WITH ENHANCED PERMISSIONS ---
 const PROVIDERS = [
   { 
-    id: "2embed", 
-    label: "CinAnime (Server 1)  ", 
-    url: (id: string, s: string, e: string) => `https://www.2embed.cc/embedtv/${id}&s=${s}&e=${e}` 
+    id: "vidsrc_cc", 
+    label: "Cinanime (Server 1)", 
+    useSandbox: true, 
+    // Added ?sub_lang=en to help trigger English subtitles
+    url: (id: string, s: string, e: string) => 
+      `https://vidsrc.cc/v2/embed/tv/${id}/${s}/${e}?sub_lang=en` 
   },
   { 
-    id: "superembed", 
-    label: "SuperEmbed (Server 2)", 
-    url: (id: string, s: string, e: string) => `https://multiembed.mov/?video_id=${id}&tmdb=1&s=${s}&e=${e}` 
-  },
-  { 
-    id: "vidsrc_to", 
-    label: "Vidsrc.to (Server 3)", 
-    url: (id: string, s: string, e: string) => `https://vidsrc.me/embed/tv?tmdb=${id}&season=${s}&episode=${e}` 
+    id: "vidlink", 
+    label: "Customizable (Server 2)", 
+    useSandbox: false, 
+    url: (id: string, s: string, e: string) => 
+      `https://vidlink.pro/tv/${id}/${s}/${e}` 
   },
   { 
     id: "vidsrc_pro", 
-    label: "Delta (Server 4)", 
-    url: (id: string, s: string, e: string) => `https://vidsrc.pro/embed/tv/${id}/${s}/${e}` 
+    label: "AnimePro (Server 3)", 
+    useSandbox: false, 
+    url: (id: string, s: string, e: string) => 
+      `https://vidsrc.me/embed/tv/${id}/${s}/${e}` 
   }
-  
 ];
-
 
 export default function AnimeFirePage() {
   const { id } = useParams()
   const searchParams = useSearchParams()
   const router = useRouter()
   
-  // --- PLAYER STATE ---
   const isWatching = searchParams.get("watch") === "true"
   const currentEp = searchParams.get("ep") || "1"
   const currentSeason = searchParams.get("season") || "1"
   const [activeProvider, setActiveProvider] = useState(PROVIDERS[0])
 
-  // --- DATA STATE ---
   const [anime, setAnime] = useState<any>(null)
   const [episodes, setEpisodes] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [epLoading, setEpLoading] = useState(false)
   const [error, setError] = useState(false)
 
-  // 1. FETCH MAIN ANIME DETAILS
   useEffect(() => {
     async function getDetails() {
       if (!id) return;
@@ -73,34 +66,37 @@ export default function AnimeFirePage() {
         const data = await res.json()
         setAnime(data)
       } catch (err) { 
-        console.error("FETCH_ERROR_CORE:", err)
         setError(true)
       } finally { setLoading(false) }
     }
     getDetails()
   }, [id])
 
-  // 2. FETCH EPISODES FOR SELECTED SEASON
   useEffect(() => {
-    async function getEpisodes() {
-      if (!id || !currentSeason) return;
-      setEpLoading(true)
-      try {
-        const res = await fetch(`https://api.themoviedb.org/3/tv/${id}/season/${currentSeason}`, {
-          headers: { 
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_TOKEN}`,
-            Accept: 'application/json'
-          }
-        })
-        const data = await res.json()
-        setEpisodes(data.episodes || [])
-      } catch (err) { console.error("FETCH_ERROR_EPS:", err) }
-      finally { setEpLoading(false) }
+  async function getAllEpisodes() {
+    if (!id || !currentSeason) return;
+    setEpLoading(true);
+    try {
+      // If you want to force One Piece to show everything, 
+      // you'd technically need to loop through all season numbers.
+      // For now, let's keep it efficient but fix the display.
+      const res = await fetch(`https://api.themoviedb.org/3/tv/${id}/season/${currentSeason}`, {
+        headers: { 
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_TOKEN}`,
+          Accept: 'application/json'
+        }
+      });
+      const data = await res.json();
+      setEpisodes(data.episodes || []);
+    } catch (err) { 
+      console.error(err); 
+    } finally { 
+      setEpLoading(false); 
     }
-    getEpisodes()
-  }, [id, currentSeason])
+  }
+  getAllEpisodes();
+}, [id, currentSeason]);
 
-  // --- LOADING & ERROR STATES ---
   if (loading) return (
     <div className="h-screen bg-background flex flex-col items-center justify-center gap-4">
       <Loader2 className="animate-spin text-primary w-12 h-12" />
@@ -120,8 +116,6 @@ export default function AnimeFirePage() {
     <div className="min-h-screen bg-background text-foreground transition-colors duration-500 selection:bg-primary selection:text-primary-foreground">
       <Navbar />
       
-
-      {/* --- TOP SECTION: HERO OR PLAYER --- */}
       <section className="relative w-full min-h-[65vh] flex items-end pt-20">
         {!isWatching ? (
           <>
@@ -162,7 +156,7 @@ export default function AnimeFirePage() {
         ) : (
           <div className="container mx-auto px-6 w-full mb-12 animate-in fade-in duration-700">
             <div className="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
-                <Button onClick={() => router.push(`/animes/${id}`)} variant="outline" className="text-[10px] font-black uppercase tracking-widest border-primary/20 rounded-none h-10">
+                <Button onClick={() => router.push(`/animes/${id}`)} variant="outline" className="text-[10px] font-black uppercase tracking-widest border-primary/20 rounded-none h-10 px-6">
                   <ChevronLeft size={14} className="mr-2" /> Return_To_Archive
                 </Button>
                 
@@ -179,27 +173,37 @@ export default function AnimeFirePage() {
                 </div>
             </div>
 
-            {/* THE ACTUAL PLAYER CORE */}
+            {/* PLAYER CORE */}
             <div className="relative aspect-video w-full bg-black rounded-none overflow-hidden border-4 border-secondary shadow-[0_0_50px_rgba(0,0,0,0.5)] group">
               <iframe 
+                key={`${activeProvider.id}-${currentSeason}-${currentEp}`}
                 src={activeProvider.url(id as string, currentSeason, currentEp)}
                 className="absolute inset-0 w-full h-full"
                 allowFullScreen
-                referrerPolicy="no-referrer-when-downgrade"
-                allow="autoplay; fullscreen; picture-in-picture"
-                // Broader sandbox permissions to allow third-party players to function
-                sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-popups"
+                referrerPolicy="no-referrer"
+                allow="autoplay; fullscreen"
+                // UPDATED SANDBOX: Added allow-modals, allow-popups, and allow-popups-to-escape-sandbox
+                // This is required to show the subtitle/CC selection menu.
+                sandbox={activeProvider.useSandbox 
+                  ? "allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-presentation allow-modals allow-popups allow-popups-to-escape-sandbox" 
+                  : undefined
+                }
               />
               <div className="absolute top-4 left-4 w-4 h-4 border-t-2 border-l-2 border-primary/40 pointer-events-none" />
               <div className="absolute bottom-4 right-4 w-4 h-4 border-b-2 border-r-2 border-primary/40 pointer-events-none" />
             </div>
+            
+            {/* Warning for un-sandboxed servers */}
+            {!activeProvider.useSandbox && (
+              <p className="text-[9px] font-mono text-primary/60 mt-2 uppercase tracking-tighter">
+                Note: Server bypasses local security protocol. Ad-blocker recommended.
+              </p>
+            )}
           </div>
         )}
       </section>
 
-      {/* --- CONTENT GRID --- */}
       <section className="container mx-auto px-6 py-20 grid grid-cols-1 lg:grid-cols-4 gap-16">
-        
         <div className="lg:col-span-3 space-y-16">
           <div className="space-y-8">
             <div className="flex items-center justify-between border-b border-border pb-6">
@@ -215,9 +219,14 @@ export default function AnimeFirePage() {
                 value={currentSeason}
                 onChange={(e) => router.push(`/animes/${id}?watch=${isWatching}&season=${e.target.value}&ep=1`)}
               >
-                {anime.seasons?.filter((s:any) => s.season_number > 0).map((s: any) => (
-                  <option key={s.season_number} value={s.season_number} className="bg-background">Season_{s.season_number}</option>
-                ))}
+                {anime.seasons
+                  ?.filter((s: any) => s.season_number > 0)
+                  .map((s: any) => (
+                    <option key={s.season_number} value={s.season_number} className="bg-background">
+                      {/* This will show "Season 21 (76 Episodes)" */}
+                      {s.name} ({s.episode_count} EP)
+                    </option>
+                  ))}
               </select>
             </div>
 
@@ -272,20 +281,19 @@ export default function AnimeFirePage() {
           </div>
         </div>
 
-        {/* SIDEBAR TELEMETRY */}
         <aside className="space-y-8">
           <div className="p-8 bg-card border border-border space-y-8 shadow-xl">
-             <div className="flex items-center gap-3 border-b border-border pb-4">
-               <Zap size={18} className="text-primary" />
-               <h2 className="text-xs font-black uppercase tracking-[0.2em]">Hardware_Intel</h2>
-             </div>
-             <div className="space-y-6">
-                <DetailItem label="Signal_Status" value={anime.status} color="text-green-500" />
-                <DetailItem label="Production_Lab" value={anime.production_companies?.[0]?.name || "UNKNOWN"} />
-                <DetailItem label="Relay_Network" value={anime.networks?.[0]?.name || "UNKNOWN"} />
-                <DetailItem label="Season_Count" value={`${anime.number_of_seasons} Units`} />
-                <DetailItem label="Last_Air" value={anime.last_air_date} />
-             </div>
+              <div className="flex items-center gap-3 border-b border-border pb-4">
+                <Zap size={18} className="text-primary" />
+                <h2 className="text-xs font-black uppercase tracking-[0.2em]">Hardware_Intel</h2>
+              </div>
+              <div className="space-y-6">
+                 <DetailItem label="Signal_Status" value={anime.status} color="text-green-500" />
+                 <DetailItem label="Production_Lab" value={anime.production_companies?.[0]?.name || "UNKNOWN"} />
+                 <DetailItem label="Relay_Network" value={anime.networks?.[0]?.name || "UNKNOWN"} />
+                 <DetailItem label="Season_Count" value={`${anime.number_of_seasons} Units`} />
+                 <DetailItem label="Last_Air" value={anime.last_air_date} />
+              </div>
           </div>
 
           <div className="p-6 bg-primary/5 border border-primary/10 rounded-none space-y-4">
@@ -302,14 +310,12 @@ export default function AnimeFirePage() {
                />
             </div>
             <p className="text-[8px] font-mono text-muted-foreground leading-tight">
-              ENCRYPTED_STREAMING_ACTIVE: AES-256 enabled. High-speed relay nodes connected.
+              ENCRYPTED_STREAMING_ACTIVE: High-speed relay nodes connected.
             </p>
           </div>
         </aside>
-
       </section>
       
-      {/* Decorative Scanline Overlay */}
       <div className="fixed inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.03),rgba(0,255,0,0.01),rgba(0,0,255,0.03))] z-[500] bg-[length:100%_2px,3px_100%] opacity-20" />
     </div>
     </>
