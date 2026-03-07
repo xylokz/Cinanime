@@ -14,7 +14,7 @@ const PROVIDERS = [
   { 
     id: "vidsrc_cc", 
     label: "Cinanime (Server 1)", 
-    useSandbox: true, 
+    useSandbox: false, 
     // Added ?sub_lang=en to help trigger English subtitles
     url: (id: string, s: string, e: string) => 
       `https://vidsrc.cc/v2/embed/tv/${id}/${s}/${e}?sub_lang=en` 
@@ -25,7 +25,7 @@ const PROVIDERS = [
     useSandbox: false, 
     url: (id: string, s: string, e: string) => 
       `https://vidlink.pro/tv/${id}/${s}/${e}` 
-  },
+  },  
   { 
     id: "vidsrc_pro", 
     label: "AnimePro (Server 3)", 
