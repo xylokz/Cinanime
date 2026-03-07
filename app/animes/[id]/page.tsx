@@ -14,7 +14,7 @@ const PROVIDERS = [
   { 
     id: "vidsrc_cc", 
     label: "Cinanime (Server 1)", 
-    useSandbox: false, 
+    useSandbox: true, 
     // Added ?sub_lang=en to help trigger English subtitles
     url: (id: string, s: string, e: string) => 
       `https://vidsrc.cc/v2/embed/tv/${id}/${s}/${e}?sub_lang=en` 
@@ -185,7 +185,7 @@ export default function AnimeFirePage() {
                 // UPDATED SANDBOX: Added allow-modals, allow-popups, and allow-popups-to-escape-sandbox
                 // This is required to show the subtitle/CC selection menu.
                 sandbox={activeProvider.useSandbox 
-                  ? "allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-presentation allow-modals allow-popups allow-popups-to-escape-sandbox" 
+                  ? "allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-presentation allow-modals " 
                   : undefined
                 }
               />
