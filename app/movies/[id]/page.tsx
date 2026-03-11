@@ -63,7 +63,12 @@ type Provider = {
 // -------------------- Config --------------------
 const PROVIDERS: Provider[] = [
   // Example HLS provider (replace with your real HLS manifest host)
-  { id: "local-hls", label: "HLS CDN Example", host: "cdn.example.com", color: "#7c3aed", hls: "https://cdn.example.com/{type}/{id}/master.m3u8" },
+  {
+  id: "test",
+  label: "Main Server (Recommended)",
+  host: "mux.dev",
+  hls: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
+},
 
   // classic embed providers — these will render in an iframe (audio switching rarely works)
   { id: "cc", label: "vidsrc.cc (embed)", host: "vidsrc.cc", color: "#cae962", embedBase: "https://vidsrc.cc/v2/embed" },
