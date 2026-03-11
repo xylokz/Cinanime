@@ -248,7 +248,7 @@ export default function ObsidianVoidShield() {
         const sorted = movieData.translations.translations.sort((a: Translation, b: Translation) => a.english_name.localeCompare(b.english_name))
         setLangs(sorted)
         if (!audio) {
-          const defaultLang = sorted.find(t => t.iso_639_1 === "en") || sorted[0]
+          const defaultLang = sorted.find((t:Translation) => t.iso_639_1 === "en") || sorted[0]
           setAudio(defaultLang)
           addLog(`AUDIO_CODEC_LOCK: ${defaultLang?.english_name?.toUpperCase() || "AUTO"}`, "SYS")
         }
